@@ -347,7 +347,30 @@ public class EventsThread extends Thread {
             // Start with initial sync
             while (!mInitialSyncDone) {
                 final CountDownLatch latch = new CountDownLatch(1);
-                mEventsRestClient.syncFromToken(null, 0, DEFAULT_CLIENT_TIMEOUT_MS, null, null, new SimpleApiCallback<SyncResponse>(mFailureCallback) {
+                final String initFilter =
+                    "{" +
+                        "\"room\":{"
+                            +"\"state\":{"
+                                +"\"types\":["
+                                    +"\"m.room.message\"" +
+                                "]," +
+                                "\"not_types\":[" +
+                                    "\"m.read\"" +
+                                "]" +
+                            "}," +
+                            "\"ephemeral\":{" +
+                                "\"not_types\":[" +
+                                    "\"*\"" +
+                                "]" +
+                            "}" +
+                        "}," +
+                        "\"presence\":{" +
+                            "\"not_type\":[" +
+                                "\"*\"" +
+                            "]" +
+                        "}" +
+                    "}";
+                mEventsRestClient.syncFromToken(null, 0, DEFAULT_CLIENT_TIMEOUT_MS, null, initFilter, new SimpleApiCallback<SyncResponse>(mFailureCallback) {
                     @Override
                     public void onSuccess(SyncResponse syncResponse) {
                         Log.d(LOG_TAG, "Received initial sync response.");
@@ -471,7 +494,55 @@ public class EventsThread extends Thread {
 
             // the service could have been killed while being paused.
             if (!mKilling) {
-                String inlineFilter = null; //"{\"room\":{\"timeline\":{\"limit\":250}}}";
+                    String inlineFilter = null; //"{\"room\":{\"timeline\":{\"limit\":250}}}";
+
+	    	    //TODO Check switching between background/foreground
+                    if (!mIsOnline) {
+                    // assuming for not that app is in background
+                    //TODO: optimize Filter
+                    Log.d(LOG_TAG, "Krombel_test Apply sync-filter for background");
+                    inlineFilter =
+                        "{\"room\":{"
+                           +"\"state\":{"
+                               +"\"types\":[" +
+                                   "\"m.room.member\"," +
+                                   "\"m.room.message\"" +
+                               "]," +
+                               "\"not_types\":[" +
+                                   "\"m.read\"" +
+                                   "]" +
+                               "}," +
+                               "\"ephemeral\":{" +
+                                   "\"not_types\":[" +
+                                       "\"*\"" +
+                                   "]" +
+                               "}" +
+                           "}," +
+                           "\"presence\":{" +
+                               "\"not_types\":[" +
+                                   "\"*\"" +
+                               "]" +
+                           "}" +
+                       "}";
+                } else {
+                    // assuming app is in foreground
+                    Log.d(LOG_TAG, "Krombel_test Apply sync-filter for foreground (none)");
+                    inlineFilter =
+                        "{" +
+                            "\"room\":{"
+                                +"\"state\":{"
+                                    +"\"types\":["
+                                        +"\"m.room.*\"" +
+                                    "]" +
+                                "}" +
+                            "}," +
+                            "\"presence\":{" +
+                                "\"not_types\":[" +
+                                    "\"*\"" +
+                                "]" +
+                            "}" +
+                        "}";
+                }
 
                 final CountDownLatch latch = new CountDownLatch(1);
 
