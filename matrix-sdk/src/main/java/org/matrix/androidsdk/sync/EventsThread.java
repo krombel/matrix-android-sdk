@@ -494,36 +494,36 @@ public class EventsThread extends Thread {
 
             // the service could have been killed while being paused.
             if (!mKilling) {
-                    String inlineFilter = null; //"{\"room\":{\"timeline\":{\"limit\":250}}}";
+                String inlineFilter = null; //"{\"room\":{\"timeline\":{\"limit\":250}}}";
 
-	    	    //TODO Check switching between background/foreground
-                    if (!mIsOnline) {
-                    // assuming for not that app is in background
-                    //TODO: optimize Filter
-                    Log.d(LOG_TAG, "Krombel_test Apply sync-filter for background");
-                    inlineFilter =
-                        "{\"room\":{"
-                           +"\"state\":{"
-                               +"\"types\":[" +
-                                   "\"m.room.member\"," +
-                                   "\"m.room.message\"" +
-                               "]," +
-                               "\"not_types\":[" +
-                                   "\"m.read\"" +
-                                   "]" +
-                               "}," +
-                               "\"ephemeral\":{" +
-                                   "\"not_types\":[" +
-                                       "\"*\"" +
-                                   "]" +
-                               "}" +
+                //TODO Check switching between background/foreground
+                if (!mIsOnline) {
+                // assuming for not that app is in background
+                //TODO: optimize Filter
+                Log.d(LOG_TAG, "Krombel_test Apply sync-filter for background");
+                inlineFilter =
+                    "{\"room\":{"
+                       +"\"state\":{"
+                           +"\"types\":[" +
+                               "\"m.room.member\"," +
+                               "\"m.room.message\"" +
+                           "]," +
+                           "\"not_types\":[" +
+                               "\"m.read\"" +
+                               "]" +
                            "}," +
-                           "\"presence\":{" +
+                           "\"ephemeral\":{" +
                                "\"not_types\":[" +
                                    "\"*\"" +
                                "]" +
                            "}" +
-                       "}";
+                       "}," +
+                       "\"presence\":{" +
+                           "\"not_types\":[" +
+                               "\"*\"" +
+                           "]" +
+                       "}" +
+                   "}";
                 } else {
                     // assuming app is in foreground
                     Log.d(LOG_TAG, "Krombel_test Apply sync-filter for foreground (none)");
