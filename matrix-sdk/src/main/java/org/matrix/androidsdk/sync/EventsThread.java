@@ -349,27 +349,19 @@ public class EventsThread extends Thread {
                 final CountDownLatch latch = new CountDownLatch(1);
                 final String initFilter =
                     "{" +
-                        "\"room\":{"
-                            +"\"state\":{"
-                                +"\"types\":["
-                                    +"\"m.room.message\"" +
-                                "]," +
-                                "\"not_types\":[" +
-                                    "\"m.read\"" +
-                                "]" +
+                        "\"room\":{" +
+                            "\"state\":{" +
+                                "\"types\":[\"m.room.*\"]" +
                             "}," +
                             "\"ephemeral\":{" +
-                                "\"not_types\":[" +
-                                    "\"*\"" +
-                                "]" +
+                                "\"not_types\":[\"*\"]" +
                             "}" +
                         "}," +
                         "\"presence\":{" +
-                            "\"not_type\":[" +
-                                "\"*\"" +
-                            "]" +
+                            "\"not_types\":[\"*\"]" +
                         "}" +
                     "}";
+                Log.d(LOG_TAG, "Krombel use filter '" + initFilter + "'");
                 mEventsRestClient.syncFromToken(null, 0, DEFAULT_CLIENT_TIMEOUT_MS, null, initFilter, new SimpleApiCallback<SyncResponse>(mFailureCallback) {
                     @Override
                     public void onSuccess(SyncResponse syncResponse) {
@@ -409,6 +401,7 @@ public class EventsThread extends Thread {
                         if (TextUtils.equals(MatrixError.UNKNOWN_TOKEN, e.errcode)) {
                             mListener.onInvalidToken();
                         } else {
+                            Log.e(LOG_TAG, "Unhandled Matrix-error " + e.getLocalizedMessage());
                             sleepAndUnblock();
                         }
                     }
@@ -502,31 +495,25 @@ public class EventsThread extends Thread {
                 //TODO: optimize Filter
                 Log.d(LOG_TAG, "Krombel_test Apply sync-filter for background");
                 inlineFilter =
-                    "{\"room\":{"
-                       +"\"state\":{"
-                           +"\"types\":[" +
+                    "{\"room\":{" +
+                       "\"state\":{" +
+                           "\"types\":[" +
                                "\"m.room.member\"," +
                                "\"m.room.message\"" +
                            "]," +
-                           "\"not_types\":[" +
-                               "\"m.read\"" +
-                               "]" +
+                           "\"not_types\":[\"m.read\"]" +
                            "}," +
                            "\"ephemeral\":{" +
-                               "\"not_types\":[" +
-                                   "\"*\"" +
-                               "]" +
+                               "\"not_types\":[\"*\"]" +
                            "}" +
                        "}," +
                        "\"presence\":{" +
-                           "\"not_types\":[" +
-                               "\"*\"" +
-                           "]" +
+                           "\"not_types\":[\"*\"]" +
                        "}" +
                    "}";
                 } else {
                     // assuming app is in foreground
-                    Log.d(LOG_TAG, "Krombel_test Apply sync-filter for foreground (none)");
+                    Log.d(LOG_TAG, "Krombel_test Apply sync-filter for foreground");
                     inlineFilter =
                         "{" +
                             "\"room\":{"
@@ -551,6 +538,7 @@ public class EventsThread extends Thread {
                 final int fServerTimeout = serverTimeout;
                 mNextServerTimeoutms = mDefaultServerTimeoutms;
 
+                Log.d(LOG_TAG, "Krombel use filter '" + inlineFilter + "'");
                 mEventsRestClient.syncFromToken(mCurrentToken, serverTimeout, DEFAULT_CLIENT_TIMEOUT_MS, (mIsCatchingUp && mIsOnline) ? "offline" : null, inlineFilter, new SimpleApiCallback<SyncResponse>(mFailureCallback) {
                     @Override
                     public void onSuccess(SyncResponse syncResponse) {
