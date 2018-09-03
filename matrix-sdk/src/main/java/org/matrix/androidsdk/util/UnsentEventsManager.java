@@ -170,15 +170,14 @@ public class UnsentEventsManager {
     /**
      * Constructor
      *
-     * @param networkConnectivityReceiver the network received
      * @param dataHandler                 the data handler
      */
-    public UnsentEventsManager(NetworkConnectivityReceiver networkConnectivityReceiver, MXDataHandler dataHandler) {
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
+    public UnsentEventsManager(MXDataHandler dataHandler) {
+        mNetworkConnectivityReceiver = NetworkConnectivityReceiver.getInstance();
 
         // add a default listener
         // to resend the unsent messages
-        mNetworkConnectivityReceiver.addEventListener(new IMXNetworkEventListener() {
+        NetworkConnectivityReceiver.getInstance().addEventListener(new IMXNetworkEventListener() {
             @Override
             public void onNetworkConnectionUpdate(boolean isConnected) {
                 mbIsConnected = isConnected;
@@ -189,7 +188,7 @@ public class UnsentEventsManager {
             }
         });
 
-        mbIsConnected = mNetworkConnectivityReceiver.isConnected();
+        mbIsConnected = NetworkConnectivityReceiver.getInstance().isConnected();
 
         mDataHandler = dataHandler;
     }
@@ -238,13 +237,6 @@ public class UnsentEventsManager {
             mUnsentEvents.clear();
             mUnsentEventsMap.clear();
         }
-    }
-
-    /**
-     * @return the network connectivity receiver
-     */
-    public NetworkConnectivityReceiver getNetworkConnectivityReceiver() {
-        return mNetworkConnectivityReceiver;
     }
 
     /**

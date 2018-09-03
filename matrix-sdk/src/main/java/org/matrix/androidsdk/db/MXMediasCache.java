@@ -97,9 +97,6 @@ public class MXMediasCache {
     // This folder will contain decrypted media files, for file sharing
     private File mShareFolderFile;
 
-    // track the network updates
-    private final NetworkConnectivityReceiver mNetworkConnectivityReceiver;
-
     // the background thread
     static HandlerThread mDecryptingHandlerThread = null;
     static MXOsHandler mDecryptingHandler = null;
@@ -111,13 +108,11 @@ public class MXMediasCache {
      * Constructor
      *
      * @param contentManager              the content manager.
-     * @param networkConnectivityReceiver the network connectivity receiver
      * @param userID                      the account user Id.
      * @param context                     the context
      */
-    public MXMediasCache(ContentManager contentManager, NetworkConnectivityReceiver networkConnectivityReceiver, String userID, Context context) {
+    public MXMediasCache(ContentManager contentManager, String userID, Context context) {
         mContentManager = contentManager;
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
 
         File mediaBaseFolderFile;
 
@@ -1072,7 +1067,6 @@ public class MXMediasCache {
         String downloadableUrl = mContentManager.getDownloadableUrl(url, null != encryptionInfo);
         task = new MXMediaDownloadWorkerTask(context,
                 hsConfig,
-                mNetworkConnectivityReceiver,
                 getFolderFile(mimeType),
                 downloadableUrl,
                 downloadId,
@@ -1311,7 +1305,6 @@ public class MXMediasCache {
                 // Download it in background
                 MXMediaDownloadWorkerTask task = new MXMediaDownloadWorkerTask(context,
                         hsConfig,
-                        mNetworkConnectivityReceiver,
                         folderFile,
                         downloadableUrl,
                         downloadId,

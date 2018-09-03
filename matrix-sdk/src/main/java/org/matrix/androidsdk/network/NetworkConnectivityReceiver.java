@@ -50,6 +50,14 @@ public class NetworkConnectivityReceiver extends BroadcastReceiver {
     private boolean mIsUseWifiConnection = false;
     private int mNetworkSubType = TelephonyManager.NETWORK_TYPE_UNKNOWN;
 
+    private static NetworkConnectivityReceiver instance;
+    public static NetworkConnectivityReceiver getInstance() {
+        if (instance == null) {
+            instance = new NetworkConnectivityReceiver();
+        }
+        return instance;
+    }
+
     @Override
     public void onReceive(final Context context, final Intent intent) {
         NetworkInfo networkInfo = null;

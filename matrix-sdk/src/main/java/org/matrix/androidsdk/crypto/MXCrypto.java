@@ -317,10 +317,6 @@ public class MXCrypto {
         return mUIHandler;
     }
 
-    public void setNetworkConnectivityReceiver(NetworkConnectivityReceiver networkConnectivityReceiver) {
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
-    }
-
     /**
      * @return true if some saved data is corrupted
      */
@@ -405,10 +401,10 @@ public class MXCrypto {
         }
 
         // do not start if there is not network connection
-        if ((null != mNetworkConnectivityReceiver) && !mNetworkConnectivityReceiver.isConnected()) {
+        if (!NetworkConnectivityReceiver.getInstance().isConnected()) {
             // wait that a valid network connection is retrieved
-            mNetworkConnectivityReceiver.removeEventListener(mNetworkListener);
-            mNetworkConnectivityReceiver.addEventListener(mNetworkListener);
+            NetworkConnectivityReceiver.getInstance().removeEventListener(mNetworkListener);
+            NetworkConnectivityReceiver.getInstance().addEventListener(mNetworkListener);
             return;
         }
 
@@ -453,9 +449,7 @@ public class MXCrypto {
                                                     getEncryptingThreadHandler().post(new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            if (null != mNetworkConnectivityReceiver) {
-                                                                mNetworkConnectivityReceiver.removeEventListener(mNetworkListener);
-                                                            }
+                                                            NetworkConnectivityReceiver.getInstance().removeEventListener(mNetworkListener);
 
                                                             mIsStarting = false;
                                                             mIsStarted = true;

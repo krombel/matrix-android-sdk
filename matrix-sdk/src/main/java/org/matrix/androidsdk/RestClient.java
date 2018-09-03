@@ -161,9 +161,7 @@ public class RestClient<T> {
         Interceptor connectivityInterceptor = new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
-                if (mUnsentEventsManager != null
-                        && mUnsentEventsManager.getNetworkConnectivityReceiver() != null
-                        && !mUnsentEventsManager.getNetworkConnectivityReceiver().isConnected()) {
+                if (!NetworkConnectivityReceiver.getInstance().isConnected()) {
                     throw new IOException("Not connected");
                 }
                 return chain.proceed(chain.request());
@@ -306,14 +304,12 @@ public class RestClient<T> {
 
     /**
      * Refresh the connection timeouts.
-     *
-     * @param networkConnectivityReceiver the network connectivity receiver
      */
-    private void refreshConnectionTimeout(NetworkConnectivityReceiver networkConnectivityReceiver) {
+    private void refreshConnectionTimeout() {
         OkHttpClient.Builder builder = mOkHttpClient.newBuilder();
 
-        if (networkConnectivityReceiver.isConnected()) {
-            float factor = networkConnectivityReceiver.getTimeoutScale();
+        if (NetworkConnectivityReceiver.getInstance().isConnected()) {
+            float factor = NetworkConnectivityReceiver.getInstance().getTimeoutScale();
 
             builder
                     .connectTimeout((int) (CONNECTION_TIMEOUT_MS * factor), TimeUnit.MILLISECONDS)
@@ -340,14 +336,10 @@ public class RestClient<T> {
         int timeoutMs = aTimeoutMs;
 
         if (null != mUnsentEventsManager) {
-            NetworkConnectivityReceiver networkConnectivityReceiver = mUnsentEventsManager.getNetworkConnectivityReceiver();
-
-            if (null != networkConnectivityReceiver) {
-                if (networkConnectivityReceiver.isConnected()) {
-                    timeoutMs *= networkConnectivityReceiver.getTimeoutScale();
-                } else {
-                    timeoutMs = 1000;
-                }
+            if (NetworkConnectivityReceiver.getInstance().isConnected()) {
+                timeoutMs *= NetworkConnectivityReceiver.getInstance().getTimeoutScale();
+            } else {
+                timeoutMs = 1000;
             }
         }
 
@@ -364,14 +356,13 @@ public class RestClient<T> {
     public void setUnsentEventsManager(UnsentEventsManager unsentEventsManager) {
         mUnsentEventsManager = unsentEventsManager;
 
-        final NetworkConnectivityReceiver networkConnectivityReceiver = mUnsentEventsManager.getNetworkConnectivityReceiver();
-        refreshConnectionTimeout(networkConnectivityReceiver);
+        refreshConnectionTimeout();
 
-        networkConnectivityReceiver.addEventListener(new IMXNetworkEventListener() {
+        NetworkConnectivityReceiver.getInstance().addEventListener(new IMXNetworkEventListener() {
             @Override
             public void onNetworkConnectionUpdate(boolean isConnected) {
                 Log.d(LOG_TAG, "## setUnsentEventsManager()  : update the requests timeout to " + (isConnected ? CONNECTION_TIMEOUT_MS : 1) + " ms");
-                refreshConnectionTimeout(networkConnectivityReceiver);
+                refreshConnectionTimeout();
             }
         });
     }

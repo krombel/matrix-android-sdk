@@ -90,7 +90,6 @@ public class EventsThread extends Thread {
 
     // avoid restarting the listener if there is no network.
     // wait that there is an available network.
-    private NetworkConnectivityReceiver mNetworkConnectivityReceiver;
     private boolean mbIsConnected = true;
 
     // use dedicated filter when enable
@@ -208,16 +207,6 @@ public class EventsThread extends Thread {
      */
     public int getSyncDelay() {
         return mRequestDelayMs;
-    }
-
-    /**
-     * Set the network connectivity listener.
-     * It is used to avoid restarting the events threads each 10 seconds when there is no available network.
-     *
-     * @param networkConnectivityReceiver the network receiver
-     */
-    public void setNetworkConnectivityReceiver(NetworkConnectivityReceiver networkConnectivityReceiver) {
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
     }
 
     /**
@@ -503,12 +492,9 @@ public class EventsThread extends Thread {
 
         Log.d(LOG_TAG, "Starting event stream from token " + mCurrentToken);
         // sanity check
-        if (null != mNetworkConnectivityReceiver) {
-            mNetworkConnectivityReceiver.addEventListener(mNetworkListener);
-            //
-            mbIsConnected = mNetworkConnectivityReceiver.isConnected();
-            mIsNetworkSuspended = !mbIsConnected;
-        }
+        NetworkConnectivityReceiver.getInstance().addEventListener(mNetworkListener);
+        mbIsConnected = NetworkConnectivityReceiver.getInstance().isConnected();
+        mIsNetworkSuspended = !mbIsConnected;
 
         // Then repeatedly long-poll for events
 
@@ -698,9 +684,7 @@ public class EventsThread extends Thread {
             serverTimeout = mNextServerTimeoutms;
         }
 
-        if (null != mNetworkConnectivityReceiver) {
-            mNetworkConnectivityReceiver.removeEventListener(mNetworkListener);
-        }
+        NetworkConnectivityReceiver.getInstance().removeEventListener(mNetworkListener);
         Log.d(LOG_TAG, "Event stream terminating.");
     }
 

@@ -19,6 +19,7 @@ package org.matrix.androidsdk.rest.callback;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.MalformedJsonException;
 
+import org.matrix.androidsdk.network.NetworkConnectivityReceiver;
 import org.matrix.androidsdk.rest.model.HttpError;
 import org.matrix.androidsdk.rest.model.HttpException;
 import org.matrix.androidsdk.rest.model.MatrixError;
@@ -112,9 +113,9 @@ public class RestAdapterCallback<T> implements Callback<T> {
             try {
                 // some users reported that their devices were connected
                 // whereas this receiver was not called
-                if (!mUnsentEventsManager.getNetworkConnectivityReceiver().isConnected()) {
+                if (!NetworkConnectivityReceiver.getInstance().isConnected()) {
                     Log.d(LOG_TAG, "## onEventSent(): request succeed, while network seen as disconnected => ask ConnectivityReceiver to dispatch info");
-                    mUnsentEventsManager.getNetworkConnectivityReceiver().checkNetworkConnection(mUnsentEventsManager.getContext());
+                    NetworkConnectivityReceiver.getInstance().checkNetworkConnection(mUnsentEventsManager.getContext());
                 }
 
                 mUnsentEventsManager.onEventSent(mApiCallback);

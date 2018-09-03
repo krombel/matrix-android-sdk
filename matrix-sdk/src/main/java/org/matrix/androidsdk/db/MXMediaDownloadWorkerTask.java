@@ -181,11 +181,6 @@ class MXMediaDownloadWorkerTask extends AsyncTask<Void, Void, JsonElement> {
     private final EncryptedFileInfo mEncryptedFileInfo;
 
     /**
-     * Network updates tracker
-     */
-    private final NetworkConnectivityReceiver mNetworkConnectivityReceiver;
-
-    /**
      * Rest client to retrieve public antivirus server key
      */
     @Nullable
@@ -541,7 +536,6 @@ class MXMediaDownloadWorkerTask extends AsyncTask<Void, Void, JsonElement> {
      */
     public MXMediaDownloadWorkerTask(Context appContext,
                                      HomeServerConnectionConfig hsConfig,
-                                     NetworkConnectivityReceiver networkConnectivityReceiver,
                                      File directoryFile,
                                      String url,
                                      String downloadId,
@@ -552,7 +546,6 @@ class MXMediaDownloadWorkerTask extends AsyncTask<Void, Void, JsonElement> {
                                      boolean isAvScannerEnabled) {
         mApplicationContext = appContext;
         mHsConfig = hsConfig;
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
         mDirectoryFile = directoryFile;
         mUrl = url;
         mDownloadId = downloadId;
@@ -577,7 +570,6 @@ class MXMediaDownloadWorkerTask extends AsyncTask<Void, Void, JsonElement> {
     public MXMediaDownloadWorkerTask(MXMediaDownloadWorkerTask task) {
         mApplicationContext = task.mApplicationContext;
         mHsConfig = task.mHsConfig;
-        mNetworkConnectivityReceiver = task.mNetworkConnectivityReceiver;
         mDirectoryFile = task.mDirectoryFile;
         mUrl = task.mUrl;
         mDownloadId = task.mDownloadId;
@@ -755,7 +747,7 @@ class MXMediaDownloadWorkerTask extends AsyncTask<Void, Void, JsonElement> {
                 }
 
                 // add a timeout to avoid infinite loading display.
-                float scale = (null != mNetworkConnectivityReceiver) ? mNetworkConnectivityReceiver.getTimeoutScale() : 1.0f;
+                float scale = NetworkConnectivityReceiver.getInstance().getTimeoutScale();
                 connection.setReadTimeout((int) (DOWNLOAD_TIME_OUT * scale));
 
                 if (mIsAvScannerEnabled && null != mEncryptedFileInfo) {

@@ -295,19 +295,6 @@ public class MXDataHandler implements IMXEventListener {
     }
 
     /**
-     * Update the network connectivity receiver.
-     *
-     * @param networkConnectivityReceiver the network connectivity receiver
-     */
-    public void setNetworkConnectivityReceiver(NetworkConnectivityReceiver networkConnectivityReceiver) {
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
-
-        if (null != getCrypto()) {
-            getCrypto().setNetworkConnectivityReceiver(mNetworkConnectivityReceiver);
-        }
-    }
-
-    /**
      * Set the groups manager.
      *
      * @param groupsManager the groups manager
@@ -2148,7 +2135,6 @@ public class MXDataHandler implements IMXEventListener {
      */
     private void startCrypto(final boolean isInitialSync) {
         if ((null != getCrypto()) && !getCrypto().isStarted() && !getCrypto().isStarting()) {
-            getCrypto().setNetworkConnectivityReceiver(mNetworkConnectivityReceiver);
             getCrypto().start(isInitialSync, new ApiCallback<Void>() {
                 @Override
                 public void onSuccess(Void info) {

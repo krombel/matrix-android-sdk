@@ -20,7 +20,7 @@ Others:
  - 
 
 Build:
- - 
+ - make NetworkConnectivityReceiver usable app-wide through implementing instance usage
 
 Test:
  - 

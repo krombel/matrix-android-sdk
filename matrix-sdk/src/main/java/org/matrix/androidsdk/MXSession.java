@@ -144,7 +144,6 @@ public class MXSession {
     private MetricsListener mMetricsListener;
 
     private Context mAppContent;
-    private NetworkConnectivityReceiver mNetworkConnectivityReceiver;
     private UnsentEventsManager mUnsentEventsManager;
 
     private MXLatestChatMessageCache mLatestChatMessageCache;
@@ -311,15 +310,13 @@ public class MXSession {
         // application context
         mAppContent = appContext;
 
-        mNetworkConnectivityReceiver = new NetworkConnectivityReceiver();
-        mNetworkConnectivityReceiver.checkNetworkConnection(appContext);
-        mDataHandler.setNetworkConnectivityReceiver(mNetworkConnectivityReceiver);
-        mAppContent.registerReceiver(mNetworkConnectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        NetworkConnectivityReceiver.getInstance().checkNetworkConnection(appContext);
+        mAppContent.registerReceiver(NetworkConnectivityReceiver.getInstance(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
-        mBingRulesManager = new BingRulesManager(this, mNetworkConnectivityReceiver);
+        mBingRulesManager = new BingRulesManager(this);
         mDataHandler.setPushRulesManager(mBingRulesManager);
 
-        mUnsentEventsManager = new UnsentEventsManager(mNetworkConnectivityReceiver, mDataHandler);
+        mUnsentEventsManager = new UnsentEventsManager(mDataHandler);
 
         mContentManager = new ContentManager(hsConfig, mUnsentEventsManager);
 
@@ -343,7 +340,7 @@ public class MXSession {
 
         // return the default cache manager
         mLatestChatMessageCache = new MXLatestChatMessageCache(mCredentials.userId);
-        mMediasCache = new MXMediasCache(mContentManager, mNetworkConnectivityReceiver, mCredentials.userId, appContext);
+        mMediasCache = new MXMediasCache(mContentManager, mCredentials.userId, appContext);
         mDataHandler.setMediasCache(mMediasCache);
 
         mMediaScanRestClient.setMxStore(mDataHandler.getStore());
@@ -620,11 +617,11 @@ public class MXSession {
 
         // network event will not be listened anymore
         try {
-            mAppContent.unregisterReceiver(mNetworkConnectivityReceiver);
+            mAppContent.unregisterReceiver(NetworkConnectivityReceiver.getInstance());
         } catch (Exception e) {
             Log.e(LOG_TAG, "## clearApplicationCaches() : unregisterReceiver failed " + e.getMessage(), e);
         }
-        mNetworkConnectivityReceiver.removeListeners();
+        NetworkConnectivityReceiver.getInstance().removeListeners();
 
         // auto resent messages will not be resent
         mUnsentEventsManager.clear();
@@ -836,11 +833,9 @@ public class MXSession {
      * Start the event stream (events thread that listens for events) with an event listener.
      *
      * @param anEventsListener            the event listener or null if using a DataHandler
-     * @param networkConnectivityReceiver the network connectivity listener.
      * @param initialToken                the initial sync token (null to start from scratch)
      */
     public void startEventStream(final EventsThreadListener anEventsListener,
-                                 final NetworkConnectivityReceiver networkConnectivityReceiver,
                                  final String initialToken) {
         checkIfAlive();
 
@@ -872,7 +867,6 @@ public class MXSession {
 
             mEventsThread = new EventsThread(mAppContent, mEventsRestClient, fEventsListener, initialToken);
             mEventsThread.setMetricsListener(mMetricsListener);
-            mEventsThread.setNetworkConnectivityReceiver(networkConnectivityReceiver);
             mEventsThread.setIsOnline(mIsOnline);
             mEventsThread.setServerLongPollTimeout(mSyncTimeout);
             mEventsThread.setSyncDelay(mSyncDelay);
@@ -1007,22 +1001,18 @@ public class MXSession {
      * On android version older than 6.0, the doze mode might have killed the network connection.
      */
     public void refreshNetworkConnection() {
-        if (null != mNetworkConnectivityReceiver) {
-            // mNetworkConnectivityReceiver is a broadcastReceiver
-            // but some users reported that the network updates were not dispatched
-            mNetworkConnectivityReceiver.checkNetworkConnection(mAppContent);
-        }
+        NetworkConnectivityReceiver.getInstance().checkNetworkConnection(mAppContent);
     }
 
     /**
-     * Shorthand for {@link #startEventStream(EventsThreadListener, NetworkConnectivityReceiver, String)} with no eventListener
+     * Shorthand for {@link #startEventStream(EventsThreadListener, String)} with no eventListener
      * using a DataHandler and no specific failure callback.
      *
      * @param initialToken the initial sync token (null to sync from scratch).
      */
     public void startEventStream(String initialToken) {
         checkIfAlive();
-        startEventStream(null, mNetworkConnectivityReceiver, initialToken);
+        startEventStream(null, initialToken);
     }
 
     /**
@@ -1082,11 +1072,7 @@ public class MXSession {
     public void resumeEventStream() {
         checkIfAlive();
 
-        if (null != mNetworkConnectivityReceiver) {
-            // mNetworkConnectivityReceiver is a broadcastReceiver
-            // but some users reported that the network updates were not dispatched
-            mNetworkConnectivityReceiver.checkNetworkConnection(mAppContent);
-        }
+        NetworkConnectivityReceiver.getInstance().checkNetworkConnection(mAppContent);
 
         if (null != mCallsManager) {
             mCallsManager.unpauseTurnServerRefresh();
@@ -1380,7 +1366,7 @@ public class MXSession {
             Room room = (Room) roomsIterator.next();
             boolean isRequestSent = false;
 
-            if (mNetworkConnectivityReceiver.isConnected()) {
+            if (NetworkConnectivityReceiver.getInstance().isConnected()) {
                 isRequestSent = room.markAllAsRead(new SimpleApiCallback<Void>(callback) {
                     @Override
                     public void onSuccess(Void anything) {
@@ -1904,13 +1890,6 @@ public class MXSession {
                 updateUsers(userIdsToIgnore, callback);
             }
         }
-    }
-
-    /**
-     * @return the network receiver.
-     */
-    public NetworkConnectivityReceiver getNetworkConnectivityReceiver() {
-        return mNetworkConnectivityReceiver;
     }
 
     /**

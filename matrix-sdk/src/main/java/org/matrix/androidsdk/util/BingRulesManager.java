@@ -141,9 +141,8 @@ public class BingRulesManager {
      * Constructor
      *
      * @param session                     the session
-     * @param networkConnectivityReceiver the network events listener
      */
-    public BingRulesManager(MXSession session, NetworkConnectivityReceiver networkConnectivityReceiver) {
+    public BingRulesManager(MXSession session) {
         mSession = session;
         mApiClient = session.getBingRulesApiClient();
         mMyUserId = session.getCredentials().userId;
@@ -160,8 +159,7 @@ public class BingRulesManager {
             }
         };
 
-        mNetworkConnectivityReceiver = networkConnectivityReceiver;
-        networkConnectivityReceiver.addEventListener(mNetworkListener);
+        NetworkConnectivityReceiver.getInstance().addEventListener(mNetworkListener);
     }
 
     /**
@@ -176,9 +174,8 @@ public class BingRulesManager {
      * This listener is only used to initialize the rules at application launch.
      */
     private void removeNetworkListener() {
-        if ((null != mNetworkConnectivityReceiver) && (null != mNetworkListener)) {
-            mNetworkConnectivityReceiver.removeEventListener(mNetworkListener);
-            mNetworkConnectivityReceiver = null;
+        if (null != mNetworkListener) {
+            NetworkConnectivityReceiver.getInstance().removeEventListener(mNetworkListener);
             mNetworkListener = null;
         }
     }
